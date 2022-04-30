@@ -13,7 +13,6 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static io.restassured.RestAssured.*;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -21,14 +20,14 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ProductTest {
 
     @Rule
-    public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort().dynamicHttpsPort());
+    public WireMockRule wireMockRule = new WireMockRule();
 
     static ProductReq productReq = new ProductReq();
 
     @Test
     @Order(1)
     void test1() {
-        stubFor(get("/product").willReturn(ok()));
+        stubFor(get(urlMatching(HnbService.HNB_API_URL + ".*")).willReturn(ok().withBody("[{\"broj_tecajnice\":\"123\"}]")));
 
         productReq.setName(UUID.randomUUID().toString());
         productReq.setPriceHrk(BigDecimal.valueOf(23.0));
