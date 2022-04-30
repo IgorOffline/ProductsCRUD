@@ -13,7 +13,6 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
-
 @Slf4j
 @RestController
 @RequestMapping("/product")
@@ -76,5 +75,17 @@ public class ProductController {
 
         var savedProductDto = repository.save(productDto.get());
         return new ResponseEntity(savedProductDto, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{code}")
+    public ResponseEntity delete(@PathVariable String code) {
+        log.info("DELETE /product/{}", code);
+        Optional<ProductDto> productDto = repository.findByCode(code);
+        if (productDto.isEmpty()) {
+            return new ResponseEntity(HttpStatus.BAD_REQUEST);
+        }
+
+        repository.delete(productDto.get());
+        return ResponseEntity.ok(null);
     }
 }
