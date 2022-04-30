@@ -1,7 +1,10 @@
 package practice.product;
 
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.restassured.http.ContentType;
+import org.junit.Rule;
 import org.junit.jupiter.api.*;
+import practice.hnb.HnbService;
 import practice.product.req.ProductReq;
 import practice.stringly.Path;
 import practice.stringly.StatusCode;
@@ -9,17 +12,24 @@ import practice.stringly.StatusCode;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static io.restassured.RestAssured.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ProductTest {
 
+    @Rule
+    public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort().dynamicHttpsPort());
+
     static ProductReq productReq = new ProductReq();
 
     @Test
     @Order(1)
     void test1() {
+        stubFor(get("/product").willReturn(ok()));
+
         productReq.setName(UUID.randomUUID().toString());
         productReq.setPriceHrk(BigDecimal.valueOf(23.0));
         productReq.setDescription(UUID.randomUUID().toString());

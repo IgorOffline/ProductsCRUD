@@ -6,10 +6,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import practice.code.Code;
+import practice.hnb.HnbService;
 import practice.product.req.ProductEditReq;
 import practice.product.req.ProductReq;
 
 import javax.validation.Valid;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +22,9 @@ public class ProductController {
 
     @Autowired
     private ProductRepository repository;
+
+    @Autowired
+    private HnbService hnbService;
 
     @GetMapping
     public List<ProductDto> get() {
@@ -38,18 +43,26 @@ public class ProductController {
     }
 
     @PostMapping
-    public ProductDto post(@Valid @RequestBody ProductReq product) {
+    public ResponseEntity<ProductDto> post(@Valid @RequestBody ProductReq product) {
         log.info("POST /product, product: {}", product);
         var productDto = new ProductDto();
         productDto.setCode(Code.randomCode());
         productDto.setName(product.getName());
         productDto.setPriceHrk(product.getPriceHrk());
+
+        try {
+            hnbService.call();
+        } catch (Exception ex) {
+            log.error("hnbService.call() error: {}", ex.getMessage());
+            return new ResponseEntity(HttpStatus.SERVICE_UNAVAILABLE);
+        }
+
         productDto.setPriceEur(BigDecimal.valueOf(123.0));
         productDto.setDescription(product.getDescription());
         productDto.setAvailable(product.getAvailable());
 
         productDto = repository.save(productDto);
-        return productDto;
+        return ResponseEntity.ok(productDto);
     }
 
     @PutMapping("/{code}")
