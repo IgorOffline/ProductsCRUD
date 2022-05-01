@@ -1,11 +1,16 @@
 package practice.product;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.jayway.jsonpath.JsonPath;
+import org.junit.FixMethodOrder;
+import org.junit.Rule;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,16 +22,20 @@ import practice.product.req.ProductReq;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static org.hamcrest.Matchers.hasLength;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ProductTest {
+
+    @Rule
+    public WireMockRule wireMockRule = new WireMockRule();
 
     @Autowired
     private MockMvc mvc;
@@ -34,8 +43,11 @@ public class ProductTest {
     static String code;
 
     @Test
-    @Order(1)
-    public void post1() throws Exception {
+    public void t1post() throws Exception {
+        stubFor(WireMock.get("https://api.hnb.hr/tecajn/v2?valuta=EUR").willReturn(WireMock.ok(
+                "[{\"broj_tecajnice\":\"84\",\"datum_primjene\":\"2022-05-01\",\"drzava\":\"EMU\",\"drzava_iso\":\"EMU\",\"sifra_valute\":\"978\",\"valuta\":\"EUR\",\"jedinica\":1,\"kupovni_tecaj\":\"2\",\"srednji_tecaj\":\"2\",\"prodajni_tecaj\":\"2\"}]"
+        )));
+
         var productReq = new ProductReq();
         productReq.setName(UUID.randomUUID().toString());
         productReq.setPriceHrk(BigDecimal.valueOf(23.0));
@@ -54,14 +66,12 @@ public class ProductTest {
     }
 
     @Test
-    @Order(2)
-    public void get2() throws Exception {
+    public void t2get() throws Exception {
         mvc.perform(get("/product").contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
     }
 
     @Test
-    @Order(3)
-    public void get3() throws Exception {
+    public void t3get() throws Exception {
         mvc.perform(get("/product/" + code).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
     }
 }
