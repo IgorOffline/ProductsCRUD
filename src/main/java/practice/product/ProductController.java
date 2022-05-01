@@ -10,6 +10,7 @@ import practice.hnb.ExchangeRate;
 import practice.hnb.HnbService;
 import practice.product.req.ProductEditReq;
 import practice.product.req.ProductReq;
+import practice.util.Money;
 
 import javax.validation.Valid;
 import java.io.IOException;
@@ -52,19 +53,24 @@ public class ProductController {
         productDto.setPriceHrk(product.getPriceHrk());
 
         try {
-            ExchangeRate exchangeRateEuro = hnbService.exchangeRateEuro();
-            log.info("exchangeRateEuro= {}", exchangeRateEuro);
+            setPriceEuro(productDto);
         } catch (Exception ex) {
-            log.error("hnbService.call() error: {}", ex.getMessage());
+            log.error("hnbService.exchangeRateEuro error: {}", ex.getMessage());
             return new ResponseEntity(HttpStatus.SERVICE_UNAVAILABLE);
         }
 
-        productDto.setPriceEur(BigDecimal.valueOf(123.0));
         productDto.setDescription(product.getDescription());
         productDto.setAvailable(product.getAvailable());
 
         productDto = repository.save(productDto);
         return ResponseEntity.ok(productDto);
+    }
+
+    private void setPriceEuro(ProductDto productDto) throws IOException {
+        ExchangeRate exchangeRateEuro = hnbService.exchangeRateEuro();
+        var priceEuro = Money.priceKunaToEuro(productDto.getPriceHrk(), exchangeRateEuro.getSellingRateAsMoney());
+        log.info("priceEuro= {}", priceEuro);
+        productDto.setPriceEur(priceEuro);
     }
 
     @PutMapping("/{code}")
