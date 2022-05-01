@@ -14,7 +14,6 @@ import practice.util.Money;
 
 import javax.validation.Valid;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 @Slf4j
@@ -84,7 +83,13 @@ public class ProductController {
             int comparePriceHrk = productDto.get().getPriceHrk().compareTo(product.getPriceHrk());
             if (comparePriceHrk != 0) {
                 productDto.get().setPriceHrk(product.getPriceHrk());
-                productDto.get().setPriceEur(BigDecimal.valueOf(123.0));
+
+                try {
+                    setPriceEuro(productDto.get());
+                } catch (Exception ex) {
+                    log.error("hnbService.exchangeRateEuro error: {}", ex.getMessage());
+                    return new ResponseEntity(HttpStatus.SERVICE_UNAVAILABLE);
+                }
             }
         }
         if (product.getDescription() != null) {
