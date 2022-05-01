@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class ProductEditReq {
 
+    private String name;
     @Min(value = 0, message = "Minimal priceHrk value is 0")
     private BigDecimal priceHrk;
     private String description;

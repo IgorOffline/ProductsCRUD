@@ -79,6 +79,10 @@ public class ProductController {
         if (productDto.isEmpty()) {
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
         }
+
+        if (product.getName() != null) {
+            productDto.get().setName(product.getName());
+        }
         if (product.getPriceHrk() != null) {
             int comparePriceHrk = productDto.get().getPriceHrk().compareTo(product.getPriceHrk());
             if (comparePriceHrk != 0) {
