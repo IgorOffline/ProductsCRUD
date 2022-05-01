@@ -1,10 +1,8 @@
 package practice.product;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.restassured.http.ContentType;
-import org.junit.Rule;
 import org.junit.jupiter.api.*;
-import practice.hnb.HnbService;
+import org.springframework.boot.test.context.SpringBootTest;
 import practice.product.req.ProductReq;
 import practice.stringly.Path;
 import practice.stringly.StatusCode;
@@ -12,23 +10,20 @@ import practice.stringly.StatusCode;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static io.restassured.RestAssured.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+@SpringBootTest
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ProductTest {
 
-    @Rule
-    public WireMockRule wireMockRule = new WireMockRule();
-
     static ProductReq productReq = new ProductReq();
+
+    static int count = 1;
 
     @Test
     @Order(1)
     void test1() {
-        stubFor(get(urlMatching(HnbService.HNB_API_URL + ".*")).willReturn(ok().withBody("[{\"broj_tecajnice\":\"123\"}]")));
-
         productReq.setName(UUID.randomUUID().toString());
         productReq.setPriceHrk(BigDecimal.valueOf(23.0));
         productReq.setDescription(UUID.randomUUID().toString());
@@ -40,5 +35,19 @@ public class ProductTest {
         assertNotNull(productDto);
         assertNotNull(productDto.getCode());
         assertEquals(10, productDto.getCode().length());
+    }
+
+    @Test
+    @Order(3)
+    void test3() {
+        ++count;
+        assertEquals(3, count);
+    }
+
+    @Test
+    @Order(2)
+    void test2() {
+        ++count;
+        assertEquals(2, count);
     }
 }

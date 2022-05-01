@@ -1,9 +1,8 @@
 package practice.hnb;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 
 import java.io.IOException;
 
@@ -11,20 +10,14 @@ import java.io.IOException;
 @Service
 public class HnbService {
 
-    public static final String HNB_API_URL = "https://api.hnb.hr/";
+    @Autowired
+    private HnbRetrofit hnbRetrofit;
 
-    public void call() throws IOException {
+    public ExchangeRate exchangeRateEuro() throws IOException {
 
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(HNB_API_URL)
-                .addConverterFactory(JacksonConverterFactory.create())
-                .build();
-
-        HnbCalls service = retrofit.create(HnbCalls.class);
-
-        var exchangeRateEuroList = service.exchangeRateEuro().execute().body();
+        var exchangeRateEuroList = hnbRetrofit.getService().exchangeRateEuro().execute().body();
         var exchangeRateEuro = exchangeRateEuroList.get(0); // Disregard NPE
 
-        log.info("exchangeRateEuro= {}", exchangeRateEuro);
+        return exchangeRateEuro;
     }
 }

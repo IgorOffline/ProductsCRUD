@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import practice.code.Code;
+import practice.hnb.ExchangeRate;
 import practice.hnb.HnbService;
 import practice.product.req.ProductEditReq;
 import practice.product.req.ProductReq;
@@ -51,7 +52,8 @@ public class ProductController {
         productDto.setPriceHrk(product.getPriceHrk());
 
         try {
-            hnbService.call();
+            ExchangeRate exchangeRateEuro = hnbService.exchangeRateEuro();
+            log.info("exchangeRateEuro= {}", exchangeRateEuro);
         } catch (Exception ex) {
             log.error("hnbService.call() error: {}", ex.getMessage());
             return new ResponseEntity(HttpStatus.SERVICE_UNAVAILABLE);
