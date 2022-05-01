@@ -6,6 +6,12 @@ It should be compatible with newer versions of both, as well as slightly older P
 
 The Java we recommend is Amazon Corretto
 
+This project uses 
+
+> Lombok
+
+so make sure annotation processing is enabled in your IDE
+
 We recommend Docker for the postgres install, the following command can be used
 
 > docker run --name pg-14-2 -p 5432:5432 -e POSTGRES_PASSWORD=s3cret -d postgres:14.2
