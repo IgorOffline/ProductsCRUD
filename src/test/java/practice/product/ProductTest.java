@@ -1,76 +1,67 @@
 package practice.product;
 
-import io.restassured.http.ContentType;
-import org.junit.jupiter.api.*;
-import org.mockito.BDDMockito;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.JsonPath;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import practice.hnb.ExchangeRate;
-import practice.hnb.HnbService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
 import practice.product.req.ProductReq;
-import practice.stringly.Path;
-import practice.stringly.StatusCode;
 
-import java.io.IOException;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.UUID;
 
-import static io.restassured.RestAssured.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.Matchers.hasLength;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ProductTest {
 
-    @MockBean
-    private HnbService hnbService;
+    @Autowired
+    private MockMvc mvc;
 
-    static ProductReq productReq = new ProductReq();
-
-    static int count = 1;
+    static String code;
 
     @Test
     @Order(1)
-    void test1() throws IOException {
-        var exchangeRate = new ExchangeRate();
-        exchangeRate.setNumber("84");
-        exchangeRate.setApplicationDate("2022-05-01");
-        exchangeRate.setCountry("EMU");
-        exchangeRate.setCountryIso("EMU");
-        exchangeRate.setCurrencyCode("978");
-        exchangeRate.setCurrency("EUR");
-        exchangeRate.setUnit(1);
-        exchangeRate.setBuyingRate("2");
-        exchangeRate.setMidRate("2");
-        exchangeRate.setSellingRate("2");
-
-        BDDMockito.given(hnbService.exchangeRateEuro()).willReturn(exchangeRate);
-
+    public void post1() throws Exception {
+        var productReq = new ProductReq();
         productReq.setName(UUID.randomUUID().toString());
         productReq.setPriceHrk(BigDecimal.valueOf(23.0));
         productReq.setDescription(UUID.randomUUID().toString());
         productReq.setAvailable(true);
-        ProductDto productDto = given().accept(ContentType.JSON).contentType(ContentType.JSON)
-                .body(productReq)
-                .when().post(Path.product()).then().statusCode(StatusCode.ok())
-                .extract().response().body().as(ProductDto.class);
-        assertNotNull(productDto);
-        assertNotNull(productDto.getCode());
-        assertEquals(10, productDto.getCode().length());
-    }
 
-    @Test
-    @Order(3)
-    void test3() {
-        ++count;
-        assertEquals(3, count);
+        var objectMapper = new ObjectMapper();
+        var productReqJson = objectMapper.writeValueAsString(productReq);
+
+        var result = mvc.perform(post("/product").contentType(MediaType.APPLICATION_JSON)
+                .content(productReqJson))
+                .andExpect(status().is(HttpStatus.CREATED.value()))
+                .andExpect(jsonPath("$.code", hasLength(10))).andReturn();
+
+        code = JsonPath.read(result.getResponse().getContentAsString(), "$.code");
     }
 
     @Test
     @Order(2)
-    void test2() {
-        ++count;
-        assertEquals(2, count);
+    public void get2() throws Exception {
+        mvc.perform(get("/product").contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
+    }
+
+    @Test
+    @Order(3)
+    public void get3() throws Exception {
+        mvc.perform(get("/product/" + code).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
     }
 }

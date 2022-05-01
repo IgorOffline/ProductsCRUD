@@ -63,7 +63,7 @@ public class ProductController {
         productDto.setAvailable(product.getAvailable());
 
         productDto = repository.save(productDto);
-        return ResponseEntity.ok(productDto);
+        return new ResponseEntity(productDto, HttpStatus.CREATED);
     }
 
     private void setPriceEuro(ProductDto productDto) throws IOException {
